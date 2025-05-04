@@ -1,0 +1,173 @@
+/* style.css - Styles for Peel & Eat Golf Scorecards */
+
+/* Base styles */
+html {
+    font-size: 16px;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    line-height: 1.5;
+    color: #333;
+}
+
+h1, h2, h3, h4 {
+    font-family: 'Playfair Display', serif;
+}
+
+/* Input styles */
+.input-std {
+    display: block;
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    font-size: 0.875rem;
+}
+
+.input-std:focus {
+    outline: none;
+    border-color: #F47863;
+    box-shadow: 0 0 0 3px rgba(244, 120, 99, 0.2);
+}
+
+.input-par {
+    width: 3rem;
+    text-align: center;
+}
+
+.input-score {
+    width: 3.5rem;
+    text-align: center;
+}
+
+/* Table styles */
+.scorecard-table {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.th-std {
+    padding: 0.75rem 0.5rem;
+    text-align: center;
+    font-weight: 600;
+    background-color: #f3f4f6;
+    border-bottom: 1px solid #e5e7eb;
+    font-size: 0.875rem;
+}
+
+.td-std {
+    padding: 0.5rem;
+    text-align: center;
+    border-bottom: 1px solid #e5e7eb;
+    font-size: 0.875rem;
+}
+
+/* Golf game specific styles */
+.status-win {
+    color: #059669; /* green-600 */
+    font-weight: 600;
+}
+
+.status-loss {
+    color: #dc2626; /* red-600 */
+    font-weight: 600;
+}
+
+.status-halve {
+    color: #4b5563; /* gray-600 */
+    font-weight: 600;
+}
+
+.value-positive {
+    color: #059669; /* green-600 */
+}
+
+.value-negative {
+    color: #dc2626; /* red-600 */
+}
+
+.high-points {
+    font-weight: 600;
+    color: #059669; /* green-600 */
+}
+
+.wolf-player {
+    font-weight: 600;
+    color: #b45309; /* amber-700 */
+}
+
+.vegas-number {
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.point-winner {
+    font-weight: 600;
+    color: #059669; /* green-600 */
+}
+
+.above-quota {
+    color: #059669; /* green-600 */
+    font-weight: 600;
+}
+
+.below-quota {
+    color: #dc2626; /* red-600 */
+    font-weight: 600;
+}
+
+.skin-winner-cell {
+    font-weight: 600;
+    color: #b45309; /* amber-700 */
+}
+
+/* Checkbox styling for Bingo Bango Bongo */
+.bingo-checkbox {
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: 0.25rem;
+    border: 1px solid #d1d5db;
+    cursor: pointer;
+}
+
+/* Game selection styles */
+.game-select-btn {
+    transition: transform 0.15s ease-in-out;
+}
+
+.game-select-btn:hover {
+    transform: translateY(-2px);
+}
+
+.game-select-btn.selected {
+    background-color: #003366; /* brand-navy */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+    .th-std, .td-std {
+        padding: 0.4rem 0.3rem;
+        font-size: 0.75rem;
+    }
+    
+    .input-par, .input-score {
+        width: 2.5rem;
+        font-size: 0.75rem;
+    }
+    
+    .vegas-number {
+        font-size: 0.875rem;
+    }
+    
+    .bingo-checkbox {
+        width: 1rem;
+        height: 1rem;
+    }
+}
