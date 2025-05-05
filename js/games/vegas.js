@@ -255,163 +255,113 @@ function updateVegas() {
     const players = ['pA', 'pB', 'pC', 'pD'];
 
     for (let i = 0; i < 18; i++) {
-        const hole = i + 1;
         players.forEach(pKey => {
-            const scoreVal = document.getElementById(`vegas-${pKey}-h${hole}-score`)?.value;
+            const scoreVal = document.getElementById(`vegas-${pKey}-h${i + 1}-score`)?.value;
             const score = scoreVal === '' ? null : parseInt(scoreVal);
             scores[pKey][i] = score;
             
-            // Update summary values if score exists
             if (score !== null) {
-                if (hole <= 9) outScores[pKey] += score;
-                else inScores[pKey] += score;
                 totalScores[pKey] += score;
+                if (i < 9) outScores[pKey] += score; else inScores[pKey] += score;
             }
         });
     }
-    
     currentRoundState.scores = scores;
-    
-    // --- 2. Calculate Vegas Team Numbers and Point Differences ---
-    const t1Nums = []; // Team 1 numbers (pA & pB)
-    const t2Nums = []; // Team 2 numbers (pC & pD)
-    const diffs = []; // Difference between teams (t2Num - t1Num)
-    
-    for (let i = 0; i < 18; i++) {
-        const t1Num = calculateVegasTeamNumber(scores.pA[i], scores.pB[i]);
-        const t2Num = calculateVegasTeamNumber(scores.pC[i], scores.pD[i]);
-        
-        let diff = null;
-        if (t1Num !== null && t2Num !== null) {
-            diff = t2Num - t1Num; // Positive means Team 2 owes, negative means Team 1 owes
-        }
-        
-        t1Nums.push(t1Num);
-        t2Nums.push(t2Num);
-        diffs.push(diff);
-    }
-    
-    currentRoundState.results = {
-        t1Num: t1Nums,
-        t2Num: t2Nums,
-        diff: diffs
-    };
-    
-    // --- 3. Update UI ---
-    // Update hole-by-hole Vegas numbers and differences
+
+    // --- 2. Calculate Vegas Numbers and Points Difference ---
+    let results = { t1Num: Array(18).fill(null), t2Num: Array(18).fill(null), diff: Array(18).fill(0) };
+    let totalDiff = 0;
+    let outDiff = 0;
+    let inDiff = 0;
+
     for (let i = 0; i < 18; i++) {
         const hole = i + 1;
-        const t1Num = t1Nums[i];
-        const t2Num = t2Nums[i];
-        const diff = diffs[i];
-        
-        // Update team number displays
-        document.getElementById(`vegas-h${hole}-t1-num`).textContent = t1Num !== null ? t1Num : '';
-        document.getElementById(`vegas-h${hole}-t2-num`).textContent = t2Num !== null ? t2Num : '';
-        
-        // Update diff display with color coding
-        const diffCell = document.getElementById(`vegas-h${hole}-diff`);
-        if (diff !== null) {
-            diffCell.textContent = diff > 0 ? `+${diff}` : diff;
-            diffCell.className = `td-std font-semibold ${getValueClass(diff * -1)}`; // Invert because positive diff means T1 wins
+        const scoreA = scores.pA[i];
+        const scoreB = scores.pB[i];
+        const scoreC = scores.pC[i];
+        const scoreD = scores.pD[i];
+
+        const t1Num = calculateVegasTeamNumber(scoreA, scoreB);
+        const t2Num = calculateVegasTeamNumber(scoreC, scoreD);
+        results.t1Num[i] = t1Num;
+        results.t2Num[i] = t2Num;
+
+        let holeDiff = 0;
+        if (t1Num !== null && t2Num !== null) {
+            holeDiff = t2Num - t1Num; // Points won/lost by Team 1
+            results.diff[i] = holeDiff;
+            totalDiff += holeDiff;
+            if (i < 9) outDiff += holeDiff; else inDiff += holeDiff;
         } else {
-            diffCell.textContent = '';
-            diffCell.className = 'td-std font-semibold';
+            results.diff[i] = 0; // No difference if scores incomplete
+        }
+
+        // --- 3. Update UI for the hole ---
+        document.getElementById(`vegas-h${hole}-t1-num`).textContent = t1Num ?? '--';
+        document.getElementById(`vegas-h${hole}-t2-num`).textContent = t2Num ?? '--';
+        const diffCell = document.getElementById(`vegas-h${hole}-diff`);
+        if (diffCell) {
+            diffCell.textContent = (t1Num !== null && t2Num !== null) ? holeDiff : '';
+            diffCell.className = `td-std font-semibold ${getValueClass(holeDiff)}`;
         }
     }
     
-    // Update player score summary cells
-    document.getElementById('vegas-pA-out-score').textContent = outScores.pA > 0 ? outScores.pA : '';
-    document.getElementById('vegas-pA-in-score').textContent = inScores.pA > 0 ? inScores.pA : '';
-    document.getElementById('vegas-pA-total-score').textContent = totalScores.pA > 0 ? totalScores.pA : '';
+    currentRoundState.results = results;
     
-    document.getElementById('vegas-pB-out-score').textContent = outScores.pB > 0 ? outScores.pB : '';
-    document.getElementById('vegas-pB-in-score').textContent = inScores.pB > 0 ? inScores.pB : '';
-    document.getElementById('vegas-pB-total-score').textContent = totalScores.pB > 0 ? totalScores.pB : '';
+    // --- 4. Update summary cells ---
+    // Update player score totals
+    players.forEach(pKey => {
+        const player = pKey.charAt(1);
+        document.getElementById(`vegas-${pKey}-out-score`).textContent = 
+            Object.values(scores[pKey].slice(0, 9)).every(s => s === null) ? '' : 
+            outScores[pKey];
+        document.getElementById(`vegas-${pKey}-in-score`).textContent = 
+            Object.values(scores[pKey].slice(9)).every(s => s === null) ? '' : 
+            inScores[pKey];
+        document.getElementById(`vegas-${pKey}-total-score`).textContent = 
+            Object.values(scores[pKey]).every(s => s === null) ? '' : 
+            totalScores[pKey];
+    });
     
-    document.getElementById('vegas-pC-out-score').textContent = outScores.pC > 0 ? outScores.pC : '';
-    document.getElementById('vegas-pC-in-score').textContent = inScores.pC > 0 ? inScores.pC : '';
-    document.getElementById('vegas-pC-total-score').textContent = totalScores.pC > 0 ? totalScores.pC : '';
-    
-    document.getElementById('vegas-pD-out-score').textContent = outScores.pD > 0 ? outScores.pD : '';
-    document.getElementById('vegas-pD-in-score').textContent = inScores.pD > 0 ? inScores.pD : '';
-    document.getElementById('vegas-pD-total-score').textContent = totalScores.pD > 0 ? totalScores.pD : '';
-    
-    // Calculate and display summary diffs
-    let outDiff = 0, inDiff = 0, totalDiff = 0;
-    let outDiffValid = false, inDiffValid = false;
-    
-    for (let i = 0; i < 18; i++) {
-        if (diffs[i] !== null) {
-            if (i < 9) {
-                outDiff += diffs[i];
-                outDiffValid = true;
-            } else {
-                inDiff += diffs[i];
-                inDiffValid = true;
-            }
-            totalDiff += diffs[i];
-        }
-    }
-    
-    // Update summary diffs
+    // Update difference totals
     const outDiffCell = document.getElementById('vegas-out-diff');
     const inDiffCell = document.getElementById('vegas-in-diff');
     const totalDiffCell = document.getElementById('vegas-total-diff');
     
-    if (outDiffValid) {
-        outDiffCell.textContent = outDiff > 0 ? `+${outDiff}` : outDiff;
-        outDiffCell.className = `td-std font-bold ${getValueClass(outDiff * -1)}`;
-    } else {
-        outDiffCell.textContent = '';
-    }
+    outDiffCell.textContent = outDiff !== 0 ? outDiff : '';
+    outDiffCell.className = `td-std font-bold ${getValueClass(outDiff)}`;
     
-    if (inDiffValid) {
-        inDiffCell.textContent = inDiff > 0 ? `+${inDiff}` : inDiff;
-        inDiffCell.className = `td-std font-bold ${getValueClass(inDiff * -1)}`;
-    } else {
-        inDiffCell.textContent = '';
-    }
+    inDiffCell.textContent = inDiff !== 0 ? inDiff : '';
+    inDiffCell.className = `td-std font-bold ${getValueClass(inDiff)}`;
     
-    if (outDiffValid || inDiffValid) {
-        totalDiffCell.textContent = totalDiff > 0 ? `+${totalDiff}` : totalDiff;
-        totalDiffCell.className = `td-std font-extrabold ${getValueClass(totalDiff * -1)}`;
-    } else {
-        totalDiffCell.textContent = '';
-    }
+    totalDiffCell.textContent = totalDiff !== 0 ? totalDiff : '';
+    totalDiffCell.className = `td-std font-extrabold ${getValueClass(totalDiff)}`;
     
-    // Store settlement info in state
-    currentRoundState.settlement = { totalDiff: totalDiff };
+    // --- 5. Calculate settlement ---
+    // Create settlement information
+    const pointValue = currentRoundState.pointValue;
+    const settlement = {
+        totalDiff: totalDiff,
+        summaryText: ''
+    };
     
-    // Update settlement summary
-    updateVegasSettlement();
-}
-
-/**
- * Update Vegas settlement summary
- */
-function updateVegasSettlement() {
-    if (!currentRoundState || currentRoundState.gameType !== 'vegas') return;
-    
-    const totalDiff = currentRoundState.settlement.totalDiff || 0;
-    const pointValue = currentRoundState.pointValue || 1;
-    const amount = Math.abs(totalDiff) * pointValue;
-    
-    const t1Name = `Team 1 (${currentRoundState.teams?.t1?.pA || 'A'}/${currentRoundState.teams?.t1?.pB || 'B'})`;
-    const t2Name = `Team 2 (${currentRoundState.teams?.t2?.pC || 'C'}/${currentRoundState.teams?.t2?.pD || 'D'})`;
-    
-    let summaryText = '';
-    
+    // Generate summary text based on total difference
     if (totalDiff === 0) {
-        summaryText = 'Match is tied - no settlement required';
-    } else if (totalDiff > 0) {
-        // Positive diff means Team 2 owes Team 1
-        summaryText = `${t2Name} owes ${t1Name} ${formatCurrency(amount)}`;
+        settlement.summaryText = 'Match Tied - no settlement needed';
     } else {
-        // Negative diff means Team 1 owes Team 2
-        summaryText = `${t1Name} owes ${t2Name} ${formatCurrency(amount)}`;
+        const t1Names = `${currentRoundState.teams.t1.pA || 'A'}/${currentRoundState.teams.t1.pB || 'B'}`;
+        const t2Names = `${currentRoundState.teams.t2.pC || 'C'}/${currentRoundState.teams.t2.pD || 'D'}`;
+        const amount = Math.abs(totalDiff) * pointValue;
+        
+        if (totalDiff > 0) {
+            settlement.summaryText = `Team ${t1Names} owes Team ${t2Names} ${formatCurrency(amount)}`;
+        } else {
+            settlement.summaryText = `Team ${t2Names} owes Team ${t1Names} ${formatCurrency(amount)}`;
+        }
     }
     
-    currentRoundState.settlement.summaryText = summaryText;
-    document.getElementById('vegas-settlement-summary-text').textContent = summaryText;
+    currentRoundState.settlement = settlement;
+    
+    // Update settlement display
+    document.getElementById('vegas-settlement-summary-text').textContent = settlement.summaryText;
 }
